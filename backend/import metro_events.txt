@@ -69,3 +69,14 @@ CREATE TABLE Notifications (
     status ENUM('read', 'unread') NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+
+-- Create Requests Table
+CREATE TABLE Requests (
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    request_type ENUM('organizer', 'administrator') NOT NULL, -- Updated enum with both options
+    status ENUM('pending', 'approved', 'declined') NOT NULL,
+    request_details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);

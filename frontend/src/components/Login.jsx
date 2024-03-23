@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   TextField,
   Button,
@@ -10,8 +10,9 @@ import {
 } from "@material-ui/core";
 import { ThemeProvider } from "@material-ui/core/styles";
 import theme from "../themes/theme";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserContext } from "../hooks/UserContext";
 
 const useStyles = makeStyles((theme) => ({
   formContainer: {
@@ -37,6 +38,8 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
@@ -59,8 +62,17 @@ const Login = () => {
           username,
           password,
         });
+
+        // Update user state globally
+        setUser(response.data.user);
+
         console.log(response.data.message); // Log success message
+        console.log(response.data.user.username);
+        // Store username
+        localStorage.setItem("username", response.data.user.username);
+        localStorage.setItem("userId", response.data.user.user_id);
         setSuccessMessage("Login successful"); // Set success message
+        navigate("/dashboard");
         // Optionally, you can redirect the user to another page upon successful login
         // history.push('/dashboard');
       } catch (error) {
@@ -112,16 +124,16 @@ const Login = () => {
               className={classes.submitButton}
               disabled={loading} // Disable the button when loading
             >
-              {loading && ( 
+              {loading && (
                 <CircularProgress
-                  size={24} 
+                  size={24}
                   style={{
                     position: "absolute",
                     top: "50%",
                     left: "50%",
                     marginTop: -12,
                     marginLeft: -12,
-                  }} 
+                  }}
                 />
               )}
               Sign In

@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Typography, Container, makeStyles } from "@material-ui/core";
-import { ThemeProvider } from "@material-ui/core/styles";
-import theme from "../themes/theme";
+import React, { useContext, useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core";
+import { UserContext } from "../hooks/UserContext";
+import { useNavigate } from "react-router-dom"; 
+import NavBar from "../hocs/AppBar";
+import UserDashboard from "./UserDashboard";
+import OrganizerDashboard from "./OrganizerDashboard";
+import AdminDashboard from "./AdminDashboard";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -12,39 +16,37 @@ const useStyles = makeStyles((theme) => ({
 
 const Dashboard = () => {
   const classes = useStyles();
-  const [userData, setUserData] = useState(null);
+  const { user } = useContext(UserContext);
+  const [role, setRole] = useState("user");
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  // Example: Fetch user data from the server
   useEffect(() => {
-    // Make an API request to fetch user data
-    // Update the userData state with the fetched data
-    // Example:
-    // fetchUserData().then((data) => setUserData(data));
-  }, []);
+    // Redirect to login page if user context is null
+    if (!user) {
+      navigate("/"); // Redirect to the login page
+    } else {
+      // Retrieve user role from user object if available
+      setRole(user.role);
+    }
+  }, [user, navigate]); // Include navigate in the dependency array
 
+  // Render loading state if user is not yet available
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  // Render dashboard components based on user role
   return (
-    <ThemeProvider theme={theme}>
-      <Container className={classes.container}>
-        <Typography variant="h4" gutterBottom>
-          Welcome to the Dashboard
-        </Typography>
-        <Typography variant="body1">
-          This is your personalized dashboard. You can display user-specific
-          content or functionality here.
-        </Typography>
-        {/* Example: Render user-specific data */}
-        {userData && (
-          <div>
-            <Typography variant="h6">User Information:</Typography>
-            <Typography variant="body1">
-              Username: {userData.username}
-            </Typography>
-            <Typography variant="body1">Email: {userData.email}</Typography>
-            {/* Render other user-specific data as needed */}
-          </div>
-        )}
-      </Container>
-    </ThemeProvider>
+    <>
+      <NavBar user={user} />
+      {role === "user" ? (
+        <UserDashboard user={user} />
+      ) : role === "administrator" ? (
+        <AdminDashboard />
+      ) : (
+        <OrganizerDashboard />
+      )}
+    </>
   );
 };
 

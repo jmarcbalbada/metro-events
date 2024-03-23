@@ -19,6 +19,7 @@ Metro Events is an application designed to help users organize and join events o
   - Express
   - Nodemon
   - CORS
+  - XAMPP (Apache, MySQL)
 
 - Frontend:
   - React.js
@@ -28,6 +29,10 @@ Metro Events is an application designed to help users organize and join events o
   - Axios
 
 ## Installation
+
+### On your XAMPP
+1. Create a database named metro_events
+2. open _import metro_events.txt_ file located at metro_events/backend/ and paste the SQL statements to your local database phpmyadmin
 
 ### Backend
 

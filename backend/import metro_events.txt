@@ -1,0 +1,71 @@
+-- Create Users Table
+CREATE TABLE Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    role ENUM('user', 'organizer', 'administrator') NOT NULL,
+    status ENUM('active', 'pending', 'suspended') NOT NULL
+);
+
+-- Create Events Table
+CREATE TABLE Events (
+    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    organizer_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    type VARCHAR(255),
+    date DATE,
+    location VARCHAR(255),
+    status ENUM('active', 'canceled', 'completed') NOT NULL,
+    FOREIGN KEY (organizer_id) REFERENCES Users(user_id)
+);
+
+-- Create Participants Table
+CREATE TABLE Participants (
+    participant_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- Create Event Requests Table
+CREATE TABLE Event_Requests (
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    status ENUM('pending', 'accepted', 'declined') NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- Create Upvotes Table
+CREATE TABLE Upvotes (
+    upvote_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- Create Reviews Table
+CREATE TABLE Reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating INT NOT NULL,
+    comment TEXT,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- Create Notifications Table
+CREATE TABLE Notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    message TEXT,
+    status ENUM('read', 'unread') NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);

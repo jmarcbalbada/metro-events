@@ -5,16 +5,18 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import { UserProvider } from "./hooks/UserContext";
 import PostEvent from "./events/PostEvent";
+import EventDetails from "./events/EventDetails";
 
 function App() {
   return (
-    <UserProvider> {/* Wrap the entire application with UserProvider */}
+    <UserProvider>
       <Router>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/post-event" element={<PostEvent />} /> {/* Add route for PostEvent */}
+          <Route path="/post-event" element={<PostEvent />} />
+          <Route path="/event/:eventId" element={<EventDetails />} />
         </Routes>
       </Router>
     </UserProvider>

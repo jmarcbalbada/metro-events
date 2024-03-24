@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { Link } from "react-router-dom"; // Import Link
 import { UserContext } from "../hooks/UserContext";
 import { Typography, Snackbar } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
@@ -86,44 +87,46 @@ const RegisteredEvents = () => {
       ) : (
         <List sx={{ width: "100%" }}>
           {registeredEvents.map((event) => (
-            <ListItem key={event.event_id} sx={{ py: 1 }}>
-              <ListItemAvatar>
-                <Avatar>{getIcon(event.type)}</Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <Typography>{event.title}</Typography>
-                    <CheckCircleIcon
-                      style={{ color: "green", marginLeft: "5px" }}
-                    />
-                    {user && 
-                    ((user.role === "organizer" && user.user_id === event.organizer_id) || user.role === "administrator") && (
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <Typography
-                          style={{
-                            color: "#f44336",
-                            cursor: "pointer",
-                            marginLeft: "10px",
-                          }}
-                          onClick={() => handleCancelEvent(event.event_id)}
-                        >
-                          Cancel
-                        </Typography>
-                      </div>
-                    )}
-                  </div>
-                }
-                secondary={
-                  <Typography component="div">
-                    Date: {new Date(event.date).toLocaleDateString()} <b>|</b>{" "}
-                    Location: {event.location}
-                    <br />
-                    Description: {event.description}
-                  </Typography>
-                }
-              />
-            </ListItem>
+            <Link to={`/event/${event.event_id}`} key={event.event_id} style={{ textDecoration: "none" }}> {/* Wrap the ListItem with Link */}
+              <ListItem sx={{ py: 1 }}>
+                <ListItemAvatar>
+                  <Avatar>{getIcon(event.type)}</Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <Typography>{event.title}</Typography>
+                      <CheckCircleIcon
+                        style={{ color: "green", marginLeft: "5px" }}
+                      />
+                      {user && 
+                      ((user.role === "organizer" && user.user_id === event.organizer_id) || user.role === "administrator") && (
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <Typography
+                            style={{
+                              color: "#f44336",
+                              cursor: "pointer",
+                              marginLeft: "10px",
+                            }}
+                            onClick={(e) => { e.stopPropagation(); handleCancelEvent(event.event_id); }}
+                          >
+                            Cancel
+                          </Typography>
+                        </div>
+                      )}
+                    </div>
+                  }
+                  secondary={
+                    <Typography component="div">
+                      Date: {new Date(event.date).toLocaleDateString()} <b>|</b>{" "}
+                      Location: {event.location}
+                      <br />
+                      Description: {event.description}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            </Link>
           ))}
         </List>
       )}

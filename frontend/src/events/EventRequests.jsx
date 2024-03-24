@@ -44,8 +44,18 @@ const EventRequests = () => {
     }
   };
 
-  const handleReject = (requestId) => {
-    // Implement logic to reject the request
+  const handleReject = async (requestId) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:8081/api/reject-event-request/${requestId}`
+      );
+
+      // Log the response or handle it as needed
+      console.log(response.data); // Assuming the response contains relevant information
+    } catch (error) {
+      console.error("Error declining event request:", error);
+      // Handle error if needed
+    }
   };
 
   return (

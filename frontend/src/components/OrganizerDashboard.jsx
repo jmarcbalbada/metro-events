@@ -27,9 +27,9 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center", // Align items horizontally to center
     marginTop: theme.spacing(4),
     gap: theme.spacing(4), // Add gap between the components
+    marginLeft: theme.spacing(6),
   },
 }));
-
 
 const OrganizerDashboard = () => {
   const classes = useStyles();
@@ -74,7 +74,7 @@ const OrganizerDashboard = () => {
           <RegisteredEvents />
         </Box>
         <Box className={classes.eventsContainer}>
-        <EventRequests />
+          <EventRequests />
         </Box>
       </ThemeProvider>
     </>

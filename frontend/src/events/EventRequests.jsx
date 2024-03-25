@@ -10,7 +10,7 @@ import {
 
 const EventRequests = () => {
   const [requests, setRequests] = useState([]);
-  console.log(requests);
+  // console.log(requests);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -24,11 +24,13 @@ const EventRequests = () => {
       }
     };
 
-    const intervalId = setInterval(fetchRequests, 5000); // Fetch every 5 seconds
+    fetchRequests();
 
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
+    // const intervalId = setInterval(fetchRequests, 5000); // Fetch every 5 seconds
+
+    // // Clean up the interval on component unmount
+    // return () => clearInterval(intervalId);
+  }, [requests]);
 
   const handleAccept = async (requestId) => {
     try {

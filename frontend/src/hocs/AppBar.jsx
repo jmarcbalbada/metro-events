@@ -18,11 +18,11 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import customTheme from "../themes/theme";
 import axios from "axios";
+import NotificationPopup from "../data/NotificationPopup";
 import "../styles/appbar.css";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  // Add your custom styles here
-  backgroundColor: theme.palette.primary.main, // Change this to the desired color
+  backgroundColor: theme.palette.primary.main, 
 }));
 
 export default function PrimarySearchAppBar({ user }) {
@@ -32,11 +32,39 @@ export default function PrimarySearchAppBar({ user }) {
   const [showPendingAlert, setShowPendingAlert] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
+  const [userNotifications, setUserNotifications] = useState([]);
   const userId = localStorage.getItem("userId");
+  const actualUser = user;
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     console.log(user);
-  }, []);
+    const fetchUnreadNotificationCount = async () => {
+      if (user) {
+        try {
+          // Make a GET request to the API endpoint to get the unread notification count
+          const response = await axios.get(
+            `http://localhost:8081/api/notifications/unreadCount/${user.user_id}`
+          );
+
+          // Check if the request was successful
+          if (response.status === 200) {
+            // Update the unreadNotifications state with the count received from the server
+            setUnreadNotifications(response.data.unreadCount);
+          }
+          console.log(unreadNotifications);
+        } catch (error) {
+          // Log any errors
+          console.error("Error fetching unread notification count:", error);
+          // You can also display an error message to the user if needed
+        }
+      }
+    };
+
+    // Call the fetchUnreadNotificationCount function when the component mounts
+    fetchUnreadNotificationCount();
+  }, [user, unreadNotifications]);
 
   const handleBecomeAdmin = async () => {
     try {
@@ -72,6 +100,18 @@ export default function PrimarySearchAppBar({ user }) {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8081/api/notifications/${user.user_id}`
+      );
+      setUserNotifications(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -87,6 +127,37 @@ export default function PrimarySearchAppBar({ user }) {
 
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationClick = (event) => {
+    fetchNotifications();
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationClose = () => {
+    markNotificationsAsRead();
+    setNotificationAnchorEl(null);
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      // Make a PUT request to the API endpoint to mark notifications as read
+      const response = await axios.put(
+        `http://localhost:8081/api/notifications/${user.user_id}/markAsRead`
+      );
+
+      // Check if the request was successful
+      if (response.status === 200) {
+        // You can perform additional actions if needed upon successful update
+        console.log("Notifications marked as read successfully");
+      }
+
+      setUnreadNotifications(0);
+    } catch (error) {
+      // Log any errors
+      console.error("Error marking notifications as read:", error);
+      // You can also display an error message to the user if needed
+    }
   };
 
   const menuId = "primary-search-account-menu";
@@ -129,11 +200,6 @@ export default function PrimarySearchAppBar({ user }) {
       onClose={handleMobileMenuClose}
     >
       <MenuItem>
-        <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="error">
-            <MailIcon />
-          </Badge>
-        </IconButton>
         <p>Messages</p>
       </MenuItem>
       <MenuItem>
@@ -141,12 +207,17 @@ export default function PrimarySearchAppBar({ user }) {
           size="large"
           aria-label="show 17 new notifications"
           color="inherit"
+          onClick={handleNotificationClick} // Call handleNotificationClick on click
         >
-          <Badge badgeContent={17} color="error">
+          <Badge badgeContent={unreadNotifications} color="error">
             <NotificationsIcon />
           </Badge>
         </IconButton>
         <p>Notifications</p>
+        <NotificationPopup
+          anchorEl={notificationAnchorEl}
+          onClose={handleNotificationClose}
+        />
       </MenuItem>
       <MenuItem onClick={handleProfileMenuOpen}>
         <IconButton
@@ -197,22 +268,19 @@ export default function PrimarySearchAppBar({ user }) {
               )}
               <IconButton
                 size="large"
-                aria-label="show 4 new mails"
-                color="inherit"
-              >
-                <Badge badgeContent={4} color="error">
-                  <MailIcon />
-                </Badge>
-              </IconButton>
-              <IconButton
-                size="large"
                 aria-label="show 17 new notifications"
                 color="inherit"
+                onClick={handleNotificationClick} // Call handleNotificationClick on click
               >
-                <Badge badgeContent={17} color="error">
+                <Badge badgeContent={unreadNotifications} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
+              <NotificationPopup
+                anchorEl={notificationAnchorEl}
+                onClose={handleNotificationClose}
+                notifications={userNotifications}
+              />
               <IconButton
                 size="large"
                 edge="end"

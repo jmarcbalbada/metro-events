@@ -19,15 +19,18 @@ import FastfoodIcon from "@mui/icons-material/Fastfood";
 import Box from "@mui/material/Box";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
+import AlertDialogModal from "../components/AlertDialogModal";
 
 const RegisteredEvents = () => {
   const [registeredEvents, setRegisteredEvents] = useState([]);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const { user } = useContext(UserContext);
-  console.log(user);
-  console.log(registeredEvents);
+  const fromRegister = true;
+  // console.log(user);
+  // console.log(registeredEvents);
 
   useEffect(() => {
+    <CheckCircleIcon style={{ color: "green", marginLeft: "5px" }} />;
     const fetchRegisteredEvents = async () => {
       try {
         const response = await axios.get(
@@ -42,9 +45,10 @@ const RegisteredEvents = () => {
     if (user) {
       fetchRegisteredEvents();
     }
-  }, []);
+  }, [registeredEvents]);
 
   const handleCancelEvent = async (eventId) => {
+    const success = false;
     try {
       // Make a request to the server to cancel the event
       await axios.put(`http://localhost:8081/api/cancel-event/${eventId}`);
@@ -56,6 +60,7 @@ const RegisteredEvents = () => {
 
       // Show the snackbar
       setShowSnackbar(true);
+      success = true;
 
       // Log a message indicating the event cancellation
       console.log("Event canceled successfully:", eventId);
@@ -63,6 +68,13 @@ const RegisteredEvents = () => {
       console.error("Error canceling event:", error);
     }
     console.log("Cancel event with ID:", eventId);
+
+    if (success) {
+    }
+  };
+
+  const sampleReason = (reason) => {
+    console.log(reason);
   };
 
   const handleCloseSnackbar = () => {
@@ -79,7 +91,13 @@ const RegisteredEvents = () => {
         p: 2,
       }}
     >
-      <h2 style={{ width: "fit-content", marginBottom: "10px", marginRight: registeredEvents.length === 0 ? "130px" : "0px" }}>
+      <h2
+        style={{
+          width: "fit-content",
+          marginBottom: "10px",
+          marginRight: registeredEvents.length === 0 ? "130px" : "0px",
+        }}
+      >
         {user.role === "user" ? "Registered Events" : "Your Events"}
       </h2>
       {registeredEvents.length === 0 ? (
@@ -87,46 +105,47 @@ const RegisteredEvents = () => {
       ) : (
         <List sx={{ width: "100%" }}>
           {registeredEvents.map((event) => (
-            <Link to={`/event/${event.event_id}`} key={event.event_id} style={{ textDecoration: "none" }}> {/* Wrap the ListItem with Link */}
-              <ListItem sx={{ py: 1 }}>
-                <ListItemAvatar>
-                  <Avatar>{getIcon(event.type)}</Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      <Typography>{event.title}</Typography>
-                      <CheckCircleIcon
-                        style={{ color: "green", marginLeft: "5px" }}
-                      />
-                      {user && 
-                      ((user.role === "organizer" && user.user_id === event.organizer_id) || user.role === "administrator") && (
+            <div key={event.event_id} style={{ display: "flex" }}>
+              {/* Event Details */}
+              <div style={{ flex: "1" }}>
+                <Link
+                  to={`/event/${event.event_id}?fromRegister=true`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <ListItem sx={{ py: 1 }}>
+                    <ListItemAvatar style={{ cursor: "auto" }}>
+                      <Avatar>{getIcon(event.type)}</Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
                         <div style={{ display: "flex", alignItems: "center" }}>
-                          <Typography
-                            style={{
-                              color: "#f44336",
-                              cursor: "pointer",
-                              marginLeft: "10px",
-                            }}
-                            onClick={(e) => { e.stopPropagation(); handleCancelEvent(event.event_id); }}
-                          >
-                            Cancel
-                          </Typography>
+                          <Typography>{event.title}</Typography>
+                          <CheckCircleIcon
+                            style={{ color: "green", marginLeft: "5px" }}
+                          />
+                          {/* Add other event details here */}
                         </div>
-                      )}
-                    </div>
-                  }
-                  secondary={
-                    <Typography component="div">
-                      Date: {new Date(event.date).toLocaleDateString()} <b>|</b>{" "}
-                      Location: {event.location}
-                      <br />
-                      Description: {event.description}
-                    </Typography>
-                  }
-                />
-              </ListItem>
-            </Link>
+                      }
+                      secondary={
+                        <Typography component="div">
+                          {new Date(event.date).toLocaleDateString()} <b>|</b>{" "}
+                          {event.location}
+                          <br />
+                          {event.description}
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                </Link>
+              </div>
+              {(user.role === "organizer" || user.role === "administrator") && (
+                <div style={{ flex: "1", marginLeft: "10px" }}>
+                  <AlertDialogModal
+                    onCancel={() => handleCancelEvent(event.event_id)}
+                  />
+                </div>
+              )}
+            </div>
           ))}
         </List>
       )}

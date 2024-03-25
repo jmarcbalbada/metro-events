@@ -14,7 +14,7 @@ import { red } from "@mui/material/colors";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import ImageIcon from "@mui/icons-material/Image";
 import Box from "@mui/material/Box";
@@ -52,7 +52,12 @@ export default function EventDetails() {
   const [favorite, setFavorite] = useState(false);
   const [countVote, setCountVote] = useState(0);
   const navigate = useNavigate();
-  console.log(user);
+  const isFromRegister = new URLSearchParams(location.search).get(
+    "fromRegister"
+  );
+  console.log("is register? ", isFromRegister);
+  // console.log(countVote);
+  // console.log(user);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -75,7 +80,7 @@ export default function EventDetails() {
         );
         const isUpvoting = response.data.isUpvoting;
         setFavorite(isUpvoting);
-        console.log("Is upvoting:", isUpvoting);
+        // console.log("Is upvoting:", isUpvoting);
         // Handle the upvote status as needed
       } catch (error) {
         console.error("Error checking upvote status:", error);
@@ -83,15 +88,23 @@ export default function EventDetails() {
     };
 
     const countTotalVote = async () => {
+      console.log(eventId);
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/upvotes/count`
+          "http://localhost:8081/api/upvotes/count",
+          {
+            params: {
+              event_id: eventId,
+            },
+          }
         );
         const totalUpvotes = response.data.totalUpvotes;
         setCountVote(totalUpvotes);
-        console.log("total upvotes:", totalUpvotes);
+        console.log("Total upvotes:", totalUpvotes);
+        // You can set the total upvotes state or perform other actions as needed
       } catch (error) {
-        console.error("Error checking upvote status:", error);
+        console.error("Error fetching total upvotes:", error);
+        // Handle error
       }
     };
 
@@ -192,11 +205,18 @@ export default function EventDetails() {
             </CardContent>
             <CardActions disableSpacing>
               <IconButton aria-label="add to favorites" onClick={handleUpvote}>
-                {favorite ? <FavoriteIcon /> : <FavoriteBorderOutlinedIcon />}
+                {favorite ? (
+                  <FavoriteIcon sx={{ color: red[500] }} />
+                ) : (
+                  <FavoriteBorderOutlinedIcon />
+                )}
               </IconButton>
               <Typography variant="body2" color="text.secondary">
-                {countVote} people loved this event
+                {favorite
+                  ? `You and ${countVote} other people loved this event`
+                  : `${countVote} people loved this event`}
               </Typography>
+
               <IconButton aria-label="share"></IconButton>
               <ExpandMore
                 expand={expanded}

@@ -51,9 +51,9 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setLoading(true); // Set loading state to true when login request is sent
-    setErrorMessage(""); // Clear previous error message
-    setSuccessMessage(""); // Clear previous success message
+    setLoading(true); 
+    setErrorMessage(""); 
+    setSuccessMessage(""); 
 
     // Simulate a delay of 1 second before making the login request
     setTimeout(async () => {

@@ -131,21 +131,25 @@ app.get("/user/:userId", (req, res) => {
 app.get("/api/events/:eventId", (req, res) => {
   const eventId = req.params.eventId;
   // Query the database to retrieve the event with the specified eventId
-  db.query("SELECT * FROM Events WHERE event_id = ?", [eventId], (err, result) => {
-    if (err) {
-      console.error("Error fetching event:", err);
-      return res.status(500).json({ message: "Error fetching event" });
+  db.query(
+    "SELECT * FROM Events WHERE event_id = ?",
+    [eventId],
+    (err, result) => {
+      if (err) {
+        console.error("Error fetching event:", err);
+        return res.status(500).json({ message: "Error fetching event" });
+      }
+      if (result.length === 0) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      // Send the event as a JSON response
+      res.json(result[0]);
     }
-    if (result.length === 0) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    // Send the event as a JSON response
-    res.json(result[0]);
-  });
+  );
 });
 
 // fetch reviews by event_id
-app.get('/reviews/:event_id', (req, res) => {
+app.get("/reviews/:event_id", (req, res) => {
   const eventId = req.params.event_id;
   // SQL query to join Reviews and Users tables
   const sqlQuery = `
@@ -153,91 +157,95 @@ app.get('/reviews/:event_id', (req, res) => {
       FROM Reviews
       INNER JOIN Users ON Reviews.user_id = Users.user_id
       WHERE Reviews.event_id = ?`;
-  
+
   // Execute the query
   db.query(sqlQuery, [eventId], (err, results) => {
-      if (err) {
-          console.error('Error fetching reviews:', err);
-          res.status(500).json({ error: 'Failed to fetch reviews' });
-      } else {
-          res.json(results);
-      }
+    if (err) {
+      console.error("Error fetching reviews:", err);
+      res.status(500).json({ error: "Failed to fetch reviews" });
+    } else {
+      res.json(results);
+    }
   });
 });
 
 // post review
 // Endpoint to handle posting reviews
-app.post('/api/post-review', (req, res) => {
+app.post("/api/post-review", (req, res) => {
   const { event_id, user_id, rating, comment } = req.body;
 
   // Validate input data
   if (!event_id || !user_id || !rating || !comment) {
-    return res.status(400).json({ error: 'All fields are required.' });
+    return res.status(400).json({ error: "All fields are required." });
   }
 
   // SQL query to insert the review into the database
-  const sqlQuery = 'INSERT INTO Reviews (event_id, user_id, rating, comment) VALUES (?, ?, ?, ?)';
-  
+  const sqlQuery =
+    "INSERT INTO Reviews (event_id, user_id, rating, comment) VALUES (?, ?, ?, ?)";
+
   // Execute the query
   db.query(sqlQuery, [event_id, user_id, rating, comment], (err, results) => {
     if (err) {
-      console.error('Error posting review:', err);
-      res.status(500).json({ error: 'Failed to post review' });
+      console.error("Error posting review:", err);
+      res.status(500).json({ error: "Failed to post review" });
     } else {
-      res.status(201).json({ message: 'Review posted successfully.' });
+      res.status(201).json({ message: "Review posted successfully." });
     }
   });
 });
 
-
 // upvotes
 // Endpoint to handle posting upvotes
-app.post('/api/upvotes', (req, res) => {
+app.post("/api/upvotes", (req, res) => {
   const { user_id, event_id } = req.body;
 
   // Validate input data
   if (!user_id || !event_id) {
-    return res.status(400).json({ error: 'User ID and event ID are required.' });
+    return res
+      .status(400)
+      .json({ error: "User ID and event ID are required." });
   }
 
   // SQL query to insert the upvote into the database
-  const sqlQuery = 'INSERT INTO Upvotes (user_id, event_id) VALUES (?, ?)';
-  
+  const sqlQuery = "INSERT INTO Upvotes (user_id, event_id) VALUES (?, ?)";
+
   // Execute the query
   db.query(sqlQuery, [user_id, event_id], (err, results) => {
     if (err) {
-      console.error('Error adding upvote:', err);
-      res.status(500).json({ error: 'Failed to add upvote' });
+      console.error("Error adding upvote:", err);
+      res.status(500).json({ error: "Failed to add upvote" });
     } else {
-      res.status(201).json({ message: 'Upvote added successfully.' });
+      res.status(201).json({ message: "Upvote added successfully." });
     }
   });
 });
 
 // remove upvote, delete upvote
 // Endpoint to handle deleting upvotes
-app.post('/api/remove-upvotes', (req, res) => {
+app.post("/api/remove-upvotes", (req, res) => {
   const { user_id, event_id } = req.body;
 
   // Validate input data
   if (!user_id || !event_id) {
-    return res.status(400).json({ error: 'User ID and event ID are required.' });
+    return res
+      .status(400)
+      .json({ error: "User ID and event ID are required." });
   }
 
   // SQL query to delete the upvote from the database
-  const sqlQuery = 'DELETE FROM Upvotes WHERE user_id = ? AND event_id = ?';
-  
+  const sqlQuery = "DELETE FROM Upvotes WHERE user_id = ? AND event_id = ?";
+
   // Execute the query
   db.query(sqlQuery, [user_id, event_id], (err, results) => {
     if (err) {
-      console.error('Error deleting upvote:', err);
-      res.status(500).json({ error: 'Failed to delete upvote' });
+      console.error("Error deleting upvote:", err);
+      res.status(500).json({ error: "Failed to delete upvote" });
     } else {
       if (results.affectedRows === 0) {
         // If no rows were affected, it means the upvote doesn't exist
-        res.status(404).json({ error: 'Upvote not found.' });
+        res.status(404).json({ error: "Upvote not found." });
       } else {
-        res.status(200).json({ message: 'Upvote deleted successfully.' });
+        res.status(200).json({ message: "Upvote deleted successfully." });
       }
     }
   });
@@ -245,22 +253,25 @@ app.post('/api/remove-upvotes', (req, res) => {
 
 // is upvoting, specific user upvote
 // Endpoint to check if a user is currently upvoting
-app.get('/api/is-upvoting/:user_id/:event_id', (req, res) => {
+app.get("/api/is-upvoting/:user_id/:event_id", (req, res) => {
   const { user_id, event_id } = req.params;
 
   // Validate input data
   if (!user_id || !event_id) {
-    return res.status(400).json({ error: 'User ID and event ID are required.' });
+    return res
+      .status(400)
+      .json({ error: "User ID and event ID are required." });
   }
 
   // SQL query to check if the user is currently upvoting the event
-  const sqlQuery = 'SELECT COUNT(*) AS count FROM Upvotes WHERE user_id = ? AND event_id = ?';
+  const sqlQuery =
+    "SELECT COUNT(*) AS count FROM Upvotes WHERE user_id = ? AND event_id = ?";
 
   // Execute the query
   db.query(sqlQuery, [user_id, event_id], (err, results) => {
     if (err) {
-      console.error('Error checking upvote status:', err);
-      res.status(500).json({ error: 'Failed to check upvote status' });
+      console.error("Error checking upvote status:", err);
+      res.status(500).json({ error: "Failed to check upvote status" });
     } else {
       // If count is greater than 0, it means the user is currently upvoting the event
       const isUpvoting = results[0].count > 0;
@@ -271,15 +282,18 @@ app.get('/api/is-upvoting/:user_id/:event_id', (req, res) => {
 
 // count vote
 // Endpoint to count overall upvotes
-app.get('/api/upvotes/count', (req, res) => {
-  // SQL query to count overall upvotes
-  const sqlQuery = 'SELECT COUNT(*) AS totalUpvotes FROM Upvotes';
-  
-  // Execute the query
-  db.query(sqlQuery, (err, results) => {
+app.get("/api/upvotes/count", (req, res) => {
+  const eventId = req.query.event_id; // Extract the event_id from the request query
+  console.info(eventId);
+
+  // SQL query to count upvotes for the specified event ID
+  const sqlQuery = "SELECT COUNT(*) AS totalUpvotes FROM Upvotes WHERE event_id = ?";
+
+  // Execute the query with eventId as parameter
+  db.query(sqlQuery, [eventId], (err, results) => {
     if (err) {
-      console.error('Error counting upvotes:', err);
-      res.status(500).json({ error: 'Failed to count upvotes' });
+      console.error("Error counting upvotes:", err);
+      res.status(500).json({ error: "Failed to count upvotes" });
     } else {
       const totalUpvotes = results[0].totalUpvotes;
       res.status(200).json({ totalUpvotes });
@@ -287,6 +301,22 @@ app.get('/api/upvotes/count', (req, res) => {
   });
 });
 
+// method 2
+// app.get("/api/upvotes/count", (req, res) => {
+//   // SQL query to count overall upvotes
+//   const sqlQuery = "SELECT COUNT(*) AS totalUpvotes FROM Upvotes";
+
+//   // Execute the query
+//   db.query(sqlQuery, (err, results) => {
+//     if (err) {
+//       console.error("Error counting upvotes:", err);
+//       res.status(500).json({ error: "Failed to count upvotes" });
+//     } else {
+//       const totalUpvotes = results[0].totalUpvotes;
+//       res.status(200).json({ totalUpvotes });
+//     }
+//   });
+// });
 
 // request to become organizer, request organizer
 // Endpoint to handle requests to become an organizer
@@ -856,6 +886,52 @@ app.put("/api/reject-event-request/:request_id", (req, res) => {
           .json({ message: "Event request declined successfully" });
       });
     });
+  });
+});
+
+//get notification
+app.get("/api/notifications/:user_id", (req, res) => {
+  const { user_id } = req.params;
+  console.info(user_id);
+  const sql = "SELECT * FROM notifications WHERE user_id = ?";
+  db.query(sql, [user_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching notifications:", err);
+      return res.status(500).json({ message: "Error fetching notifications" });
+    }
+    return res.status(200).json(results);
+  });
+});
+
+// mark read notifications
+app.put("/api/notifications/:user_id/markAsRead", (req, res) => {
+  const { user_id } = req.params;
+  console.info(user_id);
+  const sql = "UPDATE Notifications SET status = 'read' WHERE user_id = ?";
+  db.query(sql, [user_id], (err, results) => {
+    if (err) {
+      console.error("Error updating notification status:", err);
+      return res.status(500).json({ message: "Error updating notification status" });
+    }
+    return res.status(200).json({ message: "Notifications marked as read successfully" });
+  });
+});
+
+// get unread notification from user
+app.get("/api/notifications/unreadCount/:user_id", (req, res) => {
+  const { user_id } = req.params;
+
+  const sql = `SELECT COUNT(*) AS unreadCount FROM Notifications WHERE user_id = ? AND status = 'unread'`;
+
+  db.query(sql, [user_id], (err, result) => {
+    if (err) {
+      console.error("Error fetching unread notification count:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching unread notification count" });
+    }
+    const unreadCount = result[0].unreadCount;
+    return res.status(200).json({ unreadCount });
   });
 });
 

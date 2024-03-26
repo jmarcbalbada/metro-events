@@ -54,10 +54,38 @@ const OrganizerDashboard = () => {
           <Typography variant="h4" gutterBottom>
             Welcome to Organizer Dashboard
           </Typography>
-          <Typography variant="body1">
-            This is your personalized dashboard. You can view your profile,
-            check your notifications, and manage your account settings here.
+          <Typography
+            variant="body1"
+            style={{ textAlign: "left", lineHeight: "1.6" }}
+          >
+            <strong>Metro Events</strong> is your ultimate platform for seamless
+            event organization and participant management. As an organizer, you
+            hold the reins to curate unforgettable experiences and connect with
+            like-minded individuals.
+            <br />
+            <br />
+            <strong>Key Features:</strong>
+            <br />
+            <br />
+            <em>Effortless Event Creation:</em> Create and customize events
+            effortlessly, from intimate gatherings to large-scale extravaganzas.
+            <br />
+            <br />
+            <em>Streamlined Participant Management:</em> Review and accept user
+            requests to join your events, ensuring a vibrant and engaged
+            community.
+            <br />
+            <br />
+            <em>Timely Notifications:</em> Stay informed with real-time
+            notifications, keeping you updated on event requests, participant
+            status, and important announcements.
+            <br />
+            <br />
+            Experience the Power of Metro Events: Join us in shaping
+            unforgettable moments and fostering meaningful connections, one
+            event at a time.
           </Typography>
+
           {/* Button to redirect to the PostEvent page */}
           <Button
             className={classes.button}

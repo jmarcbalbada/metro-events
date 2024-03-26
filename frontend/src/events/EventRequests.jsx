@@ -10,7 +10,7 @@ import {
 
 const EventRequests = () => {
   const [requests, setRequests] = useState([]);
-  // console.log(requests);
+  //console.log(requests);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -32,31 +32,58 @@ const EventRequests = () => {
     // return () => clearInterval(intervalId);
   }, [requests]);
 
-  const handleAccept = async (requestId) => {
+  const handleAccept = async (request, requestId) => {
     try {
       const response = await axios.put(
         `http://localhost:8081/api/accept-event-request/${requestId}`
       );
-
       // Log the response or handle it as needed
       console.log(response.data); // Assuming the response contains relevant information
+      const type = "Event Request Status";
+      const message = `Your request for event "${request.event_title}" has been approved, see you there!`;
+      await sendNotification(request.user_id, type, message);
     } catch (error) {
       console.error("Error accepting event request:", error);
       // Handle error if needed
     }
   };
 
-  const handleReject = async (requestId) => {
+  const handleReject = async (request, requestId) => {
     try {
       const response = await axios.put(
         `http://localhost:8081/api/reject-event-request/${requestId}`
       );
-
       // Log the response or handle it as needed
       console.log(response.data); // Assuming the response contains relevant information
+      const type = "Event Request Status";
+      const message = `Your request for event "${request.event_title}" has been denied, you may try joining other events!`;
+      await sendNotification(request.user_id, type, message);
     } catch (error) {
       console.error("Error declining event request:", error);
       // Handle error if needed
+    }
+  };
+
+  const sendNotification = async (userId, type, message) => {
+    console.log(userId, type, message);
+    try {
+      const response = await axios.post(
+        `http://localhost:8081/api/send-notification/${userId}`,
+        {
+          type,
+          message,
+        }
+      );
+      if (response && response.data) {
+        console.log("Notification sent successfully:", response.data);
+      } else {
+        console.error("Error sending notification: Response data is undefined");
+      }
+    } catch (error) {
+      console.error(
+        "Error sending notification:",
+        error.response ? error.response.data : error.message
+      );
     }
   };
 
@@ -92,13 +119,13 @@ const EventRequests = () => {
               <div style={{ marginTop: "10px" }}>
                 <Button
                   color="primary"
-                  onClick={() => handleAccept(request.request_id)}
+                  onClick={() => handleAccept(request, request.request_id)}
                 >
                   ✔ Accept
                 </Button>
                 <Button
                   color="secondary"
-                  onClick={() => handleReject(request.request_id)}
+                  onClick={() => handleReject(request, request.request_id)}
                 >
                   ✖ Reject
                 </Button>

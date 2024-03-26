@@ -12,7 +12,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import WarningRoundedIcon from "@mui/icons-material/WarningRounded";
 import Typography from "@mui/material/Typography";
 
-const AlertDialogModal = ({ onCancel }) => {
+const AlertDialogModal = ({ onCancel, text = 'Cancel'}) => {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
 
@@ -45,7 +45,7 @@ const AlertDialogModal = ({ onCancel }) => {
         endDecorator={<DeleteForeverIcon />}
         onClick={handleClickOpen}
       >
-        Cancel
+        {text}
       </Button>
       <Modal open={open} onClose={handleClose}>
         <ModalDialog variant="outlined" role="alertdialog">

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -9,6 +10,7 @@ import Typography from "@mui/material/Typography";
 import Badge from "@mui/material/Badge";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
+import MuiAlert from "@material-ui/lab/Alert";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import MailIcon from "@mui/icons-material/Mail";
@@ -22,7 +24,7 @@ import NotificationPopup from "../data/NotificationPopup";
 import "../styles/appbar.css";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  backgroundColor: theme.palette.primary.main, 
+  backgroundColor: theme.palette.primary.main,
 }));
 
 export default function PrimarySearchAppBar({ user }) {
@@ -34,7 +36,9 @@ export default function PrimarySearchAppBar({ user }) {
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [userNotifications, setUserNotifications] = useState([]);
+  const [logoutSnackbar, setLogoutSnackbar] = useState(false);
   const userId = localStorage.getItem("userId");
+  const navigate = useNavigate();
   const actualUser = user;
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
@@ -139,6 +143,16 @@ export default function PrimarySearchAppBar({ user }) {
     setNotificationAnchorEl(null);
   };
 
+  const handleLogoutOnClose = () => {
+    console.log("log out");
+    setLogoutSnackbar(true);
+    navigate("/");
+  };
+
+  const handleLogoutSnackbarClose = () => {
+    setLogoutSnackbar(false);
+  };
+
   const markNotificationsAsRead = async () => {
     try {
       // Make a PUT request to the API endpoint to mark notifications as read
@@ -177,8 +191,7 @@ export default function PrimarySearchAppBar({ user }) {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      <MenuItem onClick={handleLogoutOnClose}>Log-out</MenuItem>
     </Menu>
   );
 
@@ -244,7 +257,7 @@ export default function PrimarySearchAppBar({ user }) {
         {/* Use the custom styled AppBar component */}
         <StyledAppBar theme={customTheme} position="static">
           <Toolbar>
-            <IconButton
+            {/* <IconButton
               size="large"
               edge="start"
               color="inherit"
@@ -252,7 +265,7 @@ export default function PrimarySearchAppBar({ user }) {
               sx={{ mr: 2 }}
             >
               <MenuIcon />
-            </IconButton>
+            </IconButton> */}
             <Typography
               variant="h6"
               noWrap
@@ -332,6 +345,20 @@ export default function PrimarySearchAppBar({ user }) {
             </Alert>
           </Snackbar>
         )}
+
+        <Snackbar
+          open={logoutSnackbar}
+          autoHideDuration={2000}
+          onClose={handleLogoutSnackbarClose}
+        >
+          <MuiAlert
+            onClose={handleLogoutSnackbarClose}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Logging you out...
+          </MuiAlert>
+        </Snackbar>
       </Box>
     </>
   );

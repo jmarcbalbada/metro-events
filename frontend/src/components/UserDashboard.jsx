@@ -8,6 +8,7 @@ import Alert from "@mui/material/Alert";
 import UpcomingEvents from "../events/UpcomingEvents";
 import { UserContext } from "../hooks/UserContext"; // Import UserContext
 import RegisteredEvents from "../events/RegisteredEvents";
+import { getRandomImageUrl } from "../data/imagesUtils";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -40,6 +41,7 @@ const UserDashboard = () => {
   const [showSnackbar, setShowSnackbar] = useState(false); // State for Snackbar
   const [pendingRequestSnackbar, setPendingRequestSnackbar] = useState(false);
   const { user } = useContext(UserContext); // Access user context
+  const randomImageUrl = getRandomImageUrl();
   console.log("db", user);
 
   const handleRequestOrganizer = async () => {
@@ -83,7 +85,7 @@ const UserDashboard = () => {
             Welcome to Metro Events!
           </Typography>
           <img
-            src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={randomImageUrl}
             alt="Metro Events"
             style={{ width: "55%", marginBottom: "20px" }}
           />

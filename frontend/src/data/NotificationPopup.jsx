@@ -30,7 +30,7 @@ const NotificationPopup = ({ anchorEl, onClose, notifications }) => {
         },
       }}
     >
-      {notifications &&
+      {notifications && notifications.length > 0 ? (
         notifications.map((notification, index) => (
           <div key={index} style={{ display: "block" }}>
             <Typography
@@ -54,7 +54,18 @@ const NotificationPopup = ({ anchorEl, onClose, notifications }) => {
               </div>
             )}
           </div>
-        ))}
+        ))
+      ) : (
+        <div></div>
+        // <Typography
+        //   style={{
+        //     padding: "7px 15px 5px 20px",
+        //     fontSize: "16px",
+        //   }}
+        // >
+        //   No notifications as of now!
+        // </Typography>
+      )}
     </Popover>
   );
 };

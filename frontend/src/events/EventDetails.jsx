@@ -2,9 +2,11 @@ import * as React from "react";
 import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "@mui/material/Card";
+import { Snackbar } from "@material-ui/core";
 import CardHeader from "@mui/material/CardHeader";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
+import MuiAlert from "@material-ui/lab/Alert";
 import CardActions from "@mui/material/CardActions";
 import Collapse from "@mui/material/Collapse";
 import Avatar from "@mui/material/Avatar";
@@ -19,10 +21,17 @@ import axios from "axios";
 import ImageIcon from "@mui/icons-material/Image";
 import Box from "@mui/material/Box";
 import AlignItemsList from "../data/AlignItemsList";
+import AlertDialogModal from "../components/AlertDialogModal";
+import Button from "@mui/joy/Button";
 import { styled } from "@mui/material/styles";
 import ExampleTextareaComment from "../components/ExampleTextareaComment";
 import { UserContext } from "../hooks/UserContext"; // Import UserContext
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { getRandomImageUrl } from "../data/imagesUtils";
+import CampaignIcon from '@mui/icons-material/Campaign';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
+import SportsGymnasticsIcon from '@mui/icons-material/SportsGymnastics';
 
 const ExpandMore = styled((props) => {
   const { expand, ...other } = props;
@@ -50,11 +59,17 @@ export default function EventDetails() {
   const [comment, setComment] = useState("");
   const { user } = useContext(UserContext); // Get user context
   const [favorite, setFavorite] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [submitSnackbarOpen, setSubmitSnackbarOpen] = useState(false);
   const [countVote, setCountVote] = useState(0);
+  const randomImageUrl = getRandomImageUrl();
   const navigate = useNavigate();
+  // participate = -1 declined , 0 - pending, 1 - accepted / joined, 2 - join this event
+  const [participate, setParticipate] = useState("");
   const isFromRegister = new URLSearchParams(location.search).get(
     "fromRegister"
   );
+
   console.log("is register? ", isFromRegister);
   // console.log(countVote);
   // console.log(user);
@@ -108,12 +123,26 @@ export default function EventDetails() {
       }
     };
 
+    const getUserStatusParticipation = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8081/api/event-request-status/${eventId}/${user.user_id}`
+        );
+        setParticipate(response.data.status);
+        console.log("participate", participate);
+      } catch (error) {
+        console.error("Error fetching user status participation:", error);
+        throw error;
+      }
+    };
+
     fetchEventDetails();
     if (user) {
       checkUpvoteStatus();
     }
 
     countTotalVote();
+    getUserStatusParticipation();
   }, [eventId]);
 
   const handleExpandClick = () => {
@@ -122,6 +151,26 @@ export default function EventDetails() {
 
   const handleCommentChange = (event) => {
     setComment(event.target.value);
+  };
+
+  const handleJoinEvent = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8081/api/event-requests",
+        {
+          event_id: eventId,
+          user_id: user.user_id,
+        }
+      );
+      setParticipate("pending");
+      setSubmitSnackbarOpen(true);
+      console.log(response.data);
+      // Close the dialog
+    } catch (error) {
+      console.error("Error posting event request:", error);
+      // Handle error
+    } finally {
+    }
   };
 
   const handleUpvote = async () => {
@@ -160,6 +209,82 @@ export default function EventDetails() {
     }
   };
 
+  const cancelEventAdminOrganizer = async (reason) => {
+    let isSuccess = false;
+    try {
+      await axios.put(`http://localhost:8081/api/cancel-event/${eventId}`);
+      isSuccess = true;
+      await sendCancellationNotifications(reason);
+      console.log("issucces", isSuccess);
+      console.log(reason);
+    } catch (error) {
+      console.error("Error canceling event:", error);
+    }
+    if (isSuccess) {
+      setSnackbarOpen(true);
+      setTimeout(() => {
+        navigate(-1);
+      }, 2000);
+    }
+  };
+
+  const sendNotification = async (userId, type, message) => {
+    console.log(userId, type, message);
+    try {
+      const response = await axios.post(
+        `http://localhost:8081/api/send-notification/${userId}`,
+        {
+          type,
+          message,
+        }
+      );
+      if (response && response.data) {
+        console.log("Notification sent successfully:", response.data);
+      } else {
+        console.error("Error sending notification: Response data is undefined");
+      }
+    } catch (error) {
+      console.error(
+        "Error sending notification:",
+        error.response ? error.response.data : error.message
+      );
+    }
+  };
+
+  const sendCancellationNotifications = async (reason) => {
+    try {
+      // Fetch all participants for the event
+      const response = await axios.get(
+        `http://localhost:8081/api/participants/${event.event_id}`
+      );
+      const participants = response.data;
+
+      // Iterate over each participant and send cancellation notification
+      participants.forEach(async (participant) => {
+        const userId = participant.user_id;
+        const type = "Event Cancellation";
+        const message = `The event "${event.title}" scheduled for ${new Date(
+          event?.date
+        ).toLocaleDateString()} at ${
+          event.location
+        } has been canceled. Reason: ${reason}`;
+        await sendNotification(userId, type, message);
+      });
+
+      console.log("Cancellation notifications sent successfully.");
+    } catch (error) {
+      console.error("Error sending cancellation notifications:", error);
+    }
+  };
+
+  // submitSnackbarOpen
+  const handleCloseSubmitSnackbar = () => {
+    setSubmitSnackbarOpen(false);
+  };
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
+
   const handleBackEvent = () => {
     navigate(-1);
     console.log("Back");
@@ -179,9 +304,127 @@ export default function EventDetails() {
             </Box>
             Back
           </IconButton>
-          <Typography variant="h3" gutterBottom>
-            Event Details
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              variant="h3"
+              sx={{ display: "inline", marginRight: "10px" }}
+            >
+              Event Details
+            </Typography>
+            {participate === "accepted" && (
+              <Typography variant="h5" sx={{ marginLeft: "60%" }}>
+                <Button
+                  color="success"
+                  variant="outlined"
+                  sx={{
+                    "&:hover": { backgroundColor: "transparent" },
+                    cursor: "auto",
+                  }}
+                >
+                  ✔ Joined
+                </Button>
+              </Typography>
+            )}
+
+            {user.role === "administrator" && (
+              <Typography variant="h5" sx={{ marginLeft: "55%" }}>
+                <AlertDialogModal
+                  text="Cancel this event"
+                  onCancel={cancelEventAdminOrganizer}
+                />
+              </Typography>
+            )}
+
+            {participate === "pending" && (
+              <Typography variant="h5" sx={{ marginLeft: "60%" }}>
+                <Button
+                  color="warning"
+                  variant="outlined"
+                  sx={{
+                    "&:hover": { backgroundColor: "transparent" },
+                    cursor: "auto",
+                  }}
+                >
+                  Pending
+                </Button>
+              </Typography>
+            )}
+
+            {participate === "declined" && (
+              <Typography variant="h5" sx={{ marginLeft: "60%" }}>
+                <Button
+                  color="danger"
+                  variant="outlined"
+                  sx={{
+                    "&:hover": { backgroundColor: "transparent" },
+                    cursor: "auto",
+                  }}
+                >
+                  ✖ declined
+                </Button>
+              </Typography>
+            )}
+
+            {participate === "unknown" &&
+              event.organizer_id !== user.user_id &&
+              user.role !== "administrator" && (
+                <Typography variant="h5" sx={{ marginLeft: "60%" }}>
+                  <Button
+                    color="primary"
+                    variant="soft"
+                    sx={{
+                      "&:hover": { backgroundColor: "transparent" },
+                      cursor: "pointer",
+                    }}
+                    onClick={handleJoinEvent}
+                  >
+                    Join this event
+                  </Button>
+                </Typography>
+              )}
+
+            {participate === "unknown" &&
+              event.organizer_id === user.user_id && (
+                <Typography variant="h5" sx={{ marginLeft: "34%" }}>
+                  <AlertDialogModal
+                    text="Cancel this event"
+                    onCancel={cancelEventAdminOrganizer}
+                  />
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    sx={{
+                      "&:hover": { backgroundColor: "transparent" },
+                      cursor: "auto",
+                      marginLeft: "20px",
+                    }}
+                  >
+                    ✔ You organized this event
+                  </Button>
+                </Typography>
+              )}
+
+            {/* {isFromRegister === "true" ? (
+              <Typography variant="h5" sx={{ marginLeft: "60%" }}>
+                <Button
+                  color="success"
+                  variant="outlined"
+                  sx={{
+                    "&:hover": { backgroundColor: "transparent" },
+                    cursor: "auto",
+                  }}
+                >
+                  ✔ Joined
+                </Button>
+              </Typography>
+            ) : (
+              <Typography variant="h5" sx={{ marginLeft: "60%" }}>
+                <Button color="primary" variant="soft">
+                  Join this event
+                </Button>
+              </Typography>
+            )} */}
+          </Box>
           <Card>
             <CardHeader
               avatar={
@@ -195,7 +438,7 @@ export default function EventDetails() {
             <CardMedia
               component="img"
               height="194"
-              image="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              image={randomImageUrl}
               alt="Paella dish"
             />
             <CardContent>
@@ -246,6 +489,34 @@ export default function EventDetails() {
         // Render message if event data is null
         <Typography>No event found</Typography>
       )}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={handleCloseSnackbar}
+      >
+        <MuiAlert
+          onClose={handleCloseSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          Event canceled successfully!
+        </MuiAlert>
+      </Snackbar>
+
+      <Snackbar
+        open={submitSnackbarOpen}
+        autoHideDuration={2000}
+        onClose={handleCloseSubmitSnackbar}
+      >
+        <MuiAlert
+          onClose={handleCloseSubmitSnackbar}
+          severity="info"
+          sx={{ width: "100%" }}
+        >
+          Request has been submitted and to be reviewed by the organizer or
+          admin!
+        </MuiAlert>
+      </Snackbar>
     </Container>
   );
 }
@@ -264,6 +535,14 @@ const getIcon = (type) => {
       return <MusicNoteIcon />;
     case "Food":
       return <FastfoodIcon />;
+    case "Concert":
+      return <CampaignIcon />;
+    case "Conference":
+      return <PeopleOutlineIcon />;
+    case "Seminar":
+      return <ConnectWithoutContactIcon />;
+    case "Exhibition":
+      return <SportsGymnasticsIcon />;
     default:
       return <EventIcon />;
   }

@@ -93,6 +93,24 @@ app.post("/login", (req, res) => {
   });
 });
 
+// Endpoint to fetch all user IDs
+app.get("/api/users", (req, res) => {
+  // SQL query to retrieve all user IDs
+  const sql = "SELECT user_id FROM Users";
+
+  // Execute the query
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching user IDs:", err);
+      return res.status(500).json({ message: "Error fetching user IDs" });
+    }
+
+    // Send the retrieved user IDs as JSON response
+    return res.status(200).json(results);
+  });
+});
+
+
 // Endpoint to fetch user by username
 app.get("/user/:username", (req, res) => {
   const { username } = req.params;
@@ -287,7 +305,8 @@ app.get("/api/upvotes/count", (req, res) => {
   console.info(eventId);
 
   // SQL query to count upvotes for the specified event ID
-  const sqlQuery = "SELECT COUNT(*) AS totalUpvotes FROM Upvotes WHERE event_id = ?";
+  const sqlQuery =
+    "SELECT COUNT(*) AS totalUpvotes FROM Upvotes WHERE event_id = ?";
 
   // Execute the query with eventId as parameter
   db.query(sqlQuery, [eventId], (err, results) => {
@@ -454,6 +473,35 @@ app.get("/api/registered-events/:userId", (req, res) => {
   });
 });
 
+// Endpoint to fetch event request status for a specific user and event
+app.get("/api/event-request-status/:eventId/:userId", (req, res) => {
+  // Extract the event ID and user ID from the request parameters
+  const eventId = req.params.eventId;
+  const userId = req.params.userId;
+
+  // SQL query to retrieve event request status for the user and event
+  const sql =
+    "SELECT status FROM Event_Requests WHERE event_id = ? AND user_id = ?";
+
+  // Execute the query
+  db.query(sql, [eventId, userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching event request status:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching event request status" });
+    }
+
+    if (results.length === 0) {
+      // If no status is found for the user and event, return 'pending'
+      return res.status(200).json({ status: "unknown" });
+    }
+
+    // Send the retrieved status as JSON response
+    return res.status(200).json(results[0]);
+  });
+});
+
 // Endpoint to handle event participation requests
 app.post("/api/event-requests", (req, res) => {
   const { event_id, user_id } = req.body;
@@ -604,6 +652,26 @@ app.post("/api/post-event", (req, res) => {
         );
       }
     );
+  });
+});
+
+// get all participants by eventId
+app.get("/api/participants/:eventId", (req, res) => {
+  // Extract the event ID from the request parameters
+  const eventId = req.params.eventId;
+
+  // SQL query to retrieve user IDs of participants for the event
+  const sql = "SELECT user_id FROM Participants WHERE event_id = ?";
+
+  // Execute the query
+  db.query(sql, [eventId], (err, results) => {
+    if (err) {
+      console.error("Error fetching participants:", err);
+      return res.status(500).json({ message: "Error fetching participants" });
+    }
+
+    // Send the retrieved user IDs as JSON response
+    return res.status(200).json(results);
   });
 });
 
@@ -903,6 +971,31 @@ app.get("/api/notifications/:user_id", (req, res) => {
   });
 });
 
+// send notification
+app.post("/api/send-notification/:userId", (req, res) => {
+  const userId = req.params.userId;
+  const { type, message } = req.body;
+  console.info(userId);
+
+  // Validate request body
+  if (!type || !message) {
+    return res.status(400).json({ message: "Type and message are required" });
+  }
+
+  // Insert notification into the database
+  const sql = "INSERT INTO Notifications (user_id, type, message, status) VALUES (?, ?, ?, 'unread')";
+  db.query(sql, [userId, type, message], (err, result) => {
+    if (err) {
+      console.error("Error inserting notification:", err);
+      return res.status(500).json({ message: "Error inserting notification" });
+    }
+    
+    // Notification inserted successfully
+    res.status(200).json({ message: "Notification sent successfully" });
+  });
+});
+
+
 // mark read notifications
 app.put("/api/notifications/:user_id/markAsRead", (req, res) => {
   const { user_id } = req.params;
@@ -911,9 +1004,13 @@ app.put("/api/notifications/:user_id/markAsRead", (req, res) => {
   db.query(sql, [user_id], (err, results) => {
     if (err) {
       console.error("Error updating notification status:", err);
-      return res.status(500).json({ message: "Error updating notification status" });
+      return res
+        .status(500)
+        .json({ message: "Error updating notification status" });
     }
-    return res.status(200).json({ message: "Notifications marked as read successfully" });
+    return res
+      .status(200)
+      .json({ message: "Notifications marked as read successfully" });
   });
 });
 

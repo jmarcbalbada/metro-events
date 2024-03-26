@@ -17,7 +17,12 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import FastfoodIcon from "@mui/icons-material/Fastfood";
 import Box from "@mui/material/Box";
 import { Link } from "react-router-dom";
+import "../styles/alertmodal.css";
 import AlertDialogModal from "../components/AlertDialogModal";
+import CampaignIcon from '@mui/icons-material/Campaign';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
+import SportsGymnasticsIcon from '@mui/icons-material/SportsGymnastics';
 
 const UpcomingEvents = () => {
   const [events, setEvents] = useState([]);
@@ -91,11 +96,6 @@ const UpcomingEvents = () => {
                     <Typography style={{ paddingRight: "15px" }}>
                       {event.title}
                     </Typography>
-                    {user.role === "administrator" && (
-                      <AlertDialogModal
-                        onCancel={() => handleCancelEvent(event.event_id)}
-                      />
-                    )}
                   </div>
                 }
                 secondary={
@@ -107,6 +107,13 @@ const UpcomingEvents = () => {
                   </Typography>
                 }
               />
+              {/* {user.role === "administrator" && (
+                <AlertDialogModal
+                  // onCancel={() => handleCancelEvent(event.event_id)}
+                  onClick={console.log("clicked")}
+                  sx={{ zIndex: 9999 }}
+                />
+              )} */}
             </ListItem>
           ))}
         </List>
@@ -142,6 +149,14 @@ const getIcon = (type) => {
       return <MusicNoteIcon />;
     case "Food":
       return <FastfoodIcon />;
+    case "Concert":
+      return <CampaignIcon />;
+    case "Conference":
+      return <PeopleOutlineIcon />;
+    case "Seminar":
+      return <ConnectWithoutContactIcon />;
+    case "Exhibition":
+      return <SportsGymnasticsIcon />;
     default:
       return <EventIcon />;
   }

@@ -18,8 +18,12 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import FastfoodIcon from "@mui/icons-material/Fastfood";
 import Box from "@mui/material/Box";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
-import AlertDialogModal from "../components/AlertDialogModal";
+import CampaignIcon from '@mui/icons-material/Campaign';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
+import SportsGymnasticsIcon from '@mui/icons-material/SportsGymnastics';
+// import CancelIcon from "@mui/icons-material/Cancel";
+// import AlertDialogModal from "../components/AlertDialogModal";
 
 const RegisteredEvents = () => {
   const [registeredEvents, setRegisteredEvents] = useState([]);
@@ -47,35 +51,35 @@ const RegisteredEvents = () => {
     }
   }, [registeredEvents]);
 
-  const handleCancelEvent = async (eventId) => {
-    const success = false;
-    try {
-      // Make a request to the server to cancel the event
-      await axios.put(`http://localhost:8081/api/cancel-event/${eventId}`);
+  // const handleCancelEvent = async (eventId) => {
+  //   const success = false;
+  //   try {
+  //     // Make a request to the server to cancel the event
+  //     await axios.put(`http://localhost:8081/api/cancel-event/${eventId}`);
 
-      // If the request is successful, remove the canceled event from the state
-      setRegisteredEvents((prevEvents) =>
-        prevEvents.filter((event) => event.event_id !== eventId)
-      );
+  //     // If the request is successful, remove the canceled event from the state
+  //     setRegisteredEvents((prevEvents) =>
+  //       prevEvents.filter((event) => event.event_id !== eventId)
+  //     );
 
-      // Show the snackbar
-      setShowSnackbar(true);
-      success = true;
+  //     // Show the snackbar
+  //     setShowSnackbar(true);
+  //     success = true;
 
-      // Log a message indicating the event cancellation
-      console.log("Event canceled successfully:", eventId);
-    } catch (error) {
-      console.error("Error canceling event:", error);
-    }
-    console.log("Cancel event with ID:", eventId);
+  //     // Log a message indicating the event cancellation
+  //     console.log("Event canceled successfully:", eventId);
+  //   } catch (error) {
+  //     console.error("Error canceling event:", error);
+  //   }
+  //   console.log("Cancel event with ID:", eventId);
 
-    if (success) {
-    }
-  };
+  //   if (success) {
+  //   }
+  // };
 
-  const sampleReason = (reason) => {
-    console.log(reason);
-  };
+  // const sampleReason = (reason) => {
+  //   console.log(reason);
+  // };
 
   const handleCloseSnackbar = () => {
     setShowSnackbar(false);
@@ -140,9 +144,9 @@ const RegisteredEvents = () => {
               </div>
               {(user.role === "organizer" || user.role === "administrator") && (
                 <div style={{ flex: "1", marginLeft: "10px" }}>
-                  <AlertDialogModal
+                  {/* <AlertDialogModal
                     onCancel={() => handleCancelEvent(event.event_id)}
-                  />
+                  /> */}
                 </div>
               )}
             </div>
@@ -181,6 +185,14 @@ const getIcon = (type) => {
       return <MusicNoteIcon />;
     case "Food":
       return <FastfoodIcon />;
+    case "Concert":
+      return <CampaignIcon />;
+    case "Conference":
+      return <PeopleOutlineIcon />;
+    case "Seminar":
+      return <ConnectWithoutContactIcon />;
+    case "Exhibition":
+      return <SportsGymnasticsIcon />;
     default:
       return <EventIcon />;
   }

@@ -957,11 +957,24 @@ app.put("/api/reject-event-request/:request_id", (req, res) => {
   });
 });
 
-//get notification
+// //get notification
+// app.get("/api/notifications/:user_id", (req, res) => {
+//   const { user_id } = req.params;
+//   console.info(user_id);
+//   const sql = "SELECT * FROM notifications WHERE user_id = ?";
+//   db.query(sql, [user_id], (err, results) => {
+//     if (err) {
+//       console.error("Error fetching notifications:", err);
+//       return res.status(500).json({ message: "Error fetching notifications" });
+//     }
+//     return res.status(200).json(results);
+//   });
+// });
+
 app.get("/api/notifications/:user_id", (req, res) => {
   const { user_id } = req.params;
   console.info(user_id);
-  const sql = "SELECT * FROM notifications WHERE user_id = ?";
+  const sql = "SELECT * FROM Notifications WHERE user_id = ? ORDER BY datetime_created DESC";
   db.query(sql, [user_id], (err, results) => {
     if (err) {
       console.error("Error fetching notifications:", err);
@@ -970,6 +983,7 @@ app.get("/api/notifications/:user_id", (req, res) => {
     return res.status(200).json(results);
   });
 });
+
 
 // send notification
 app.post("/api/send-notification/:userId", (req, res) => {

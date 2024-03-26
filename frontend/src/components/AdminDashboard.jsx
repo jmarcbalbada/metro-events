@@ -4,7 +4,7 @@ import {
   Container,
   makeStyles,
   Button,
-  Box, // Import Box component from Material-UI
+  Box, 
 } from "@material-ui/core";
 import { ThemeProvider } from "@material-ui/core/styles";
 import theme from "../themes/theme";
@@ -12,7 +12,8 @@ import UpcomingEvents from "../events/UpcomingEvents";
 import RegisteredEvents from "../events/RegisteredEvents";
 import AllowPermissions from "./AllowPermissions";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../hooks/UserContext"; // Import UserContext
+import { UserContext } from "../hooks/UserContext"; 
+import axios from "axios";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -24,16 +25,16 @@ const useStyles = makeStyles((theme) => ({
   },
   eventsContainer: {
     display: "flex",
-    justifyContent: "center", // Align items horizontally to center
+    justifyContent: "center", 
     marginTop: theme.spacing(4),
-    gap: theme.spacing(4), // Add gap between the components
+    gap: theme.spacing(4), 
   },
 }));
 
 const AdminDashboard = () => {
   const classes = useStyles();
   const navigate = useNavigate();
-  const { user } = useContext(UserContext); // Get user context
+  const { user } = useContext(UserContext); 
 
   if (!user) {
     navigate("/");
@@ -43,6 +44,33 @@ const AdminDashboard = () => {
   const handlePostEvent = () => {
     navigate("/post-event");
   };
+
+  // const sendNotification = async () => {
+  //   const userId = 12; // User ID to send the notification to
+  //   const type = "randomType"; // Random notification type
+  //   const message = "This is a test notification"; // Random message
+  //   console.log(userId, type, message);
+
+  //   try {
+  //     const response = await axios.post(
+  //       `http://localhost:8081/api/send-notification/${userId}`,
+  //       {
+  //         type,
+  //         message,
+  //       }
+  //     );
+  //     if (response && response.data) {
+  //       console.log("Notification sent successfully:", response.data);
+  //     } else {
+  //       console.error("Error sending notification: Response data is undefined");
+  //     }
+  //   } catch (error) {
+  //     console.error(
+  //       "Error sending notification:",
+  //       error.response ? error.response.data : error.message
+  //     );
+  //   }
+  // };
 
   return (
     <>
@@ -59,7 +87,7 @@ const AdminDashboard = () => {
             className={classes.button}
             variant="contained"
             color="primary"
-            onClick={handlePostEvent} // Call handlePostEvent function on button click
+            onClick={handlePostEvent} 
           >
             Post New Event
           </Button>
@@ -70,6 +98,7 @@ const AdminDashboard = () => {
         </Box>
         <Box className={classes.eventsContainer}>
           <AllowPermissions />
+          {/* <Button onClick={sendNotification}>Send Notif</Button> */}
         </Box>
       </ThemeProvider>
     </>

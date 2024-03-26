@@ -11,7 +11,9 @@ export default function ExampleTextareaComment({ eventId, user_id }) {
   const [italic, setItalic] = React.useState(false);
   const [fontWeight, setFontWeight] = React.useState("normal");
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [textareaValue, setTextareaValue] = React.useState("Type something here…");
+  const [textareaValue, setTextareaValue] = React.useState(
+    "Type something here…"
+  );
   const [ratingValue, setRatingValue] = React.useState(null); // State for the rating value
 
   const handleSendButtonClick = async () => {
@@ -25,7 +27,7 @@ export default function ExampleTextareaComment({ eventId, user_id }) {
         {
           event_id: eventId,
           user_id: user_id ? user_id : userLocalId,
-          rating: ratingValue !== null ? ratingValue : 1,
+          rating: ratingValue !== null ? ratingValue : 2,
           comment: textareaValue,
         }
       );

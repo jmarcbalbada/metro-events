@@ -50,7 +50,7 @@ const PostEvent = () => {
     if (!user) {
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,6 +71,8 @@ const PostEvent = () => {
           },
         }
       );
+
+      await sendNotificationsUpcomingEvents();
       // Show the alert after a delay of 1500 milliseconds
       setTimeout(() => {
         setShowAlert(true);
@@ -81,6 +83,56 @@ const PostEvent = () => {
       }, 1000);
     } catch (error) {
       console.error("Error posting event:", error);
+    }
+  };
+
+  const sendNotification = async (userId, type, message) => {
+    console.log(userId, type, message);
+    try {
+      const response = await axios.post(
+        `http://localhost:8081/api/send-notification/${userId}`,
+        {
+          type,
+          message,
+        }
+      );
+      if (response && response.data) {
+        console.log("Notification sent successfully:", response.data);
+      } else {
+        console.error("Error sending notification: Response data is undefined");
+      }
+    } catch (error) {
+      console.error(
+        "Error sending notification:",
+        error.response ? error.response.data : error.message
+      );
+    }
+  };
+
+  const sendNotificationsUpcomingEvents = async () => {
+    try {
+      // Fetch all users id
+      const response = await axios.get(
+        "http://localhost:8081/api/users"
+      );
+      const responseUsersIds = response.data;
+
+      console.log("ids", responseUsersIds);
+
+      //${new Date(event?.date).toLocaleDateString()}
+
+      // Iterate over each participant and send cancellation notification
+      responseUsersIds.forEach(async (responseUsersId) => {
+        const userId = responseUsersId.user_id;
+        const type = "New Event";
+        const message = `New event posted ${title} happening at ${new Date(event.date).toLocaleDateString()}, You might want to check out now!`
+        console.log(userId, type, message);
+        await sendNotification(userId, type, message);
+      });
+
+      console.log("Cancellation notifications sent successfully.");
+    } catch (error) {
+      console.error("Error sending cancellation notifications:", error);
     }
   };
 
@@ -162,7 +214,7 @@ const PostEvent = () => {
         open={showAlert}
         autoHideDuration={6000}
         onClose={handleAlertClose}
-        message="Event posted successfully"
+        message="Event posted successfully and all users have notified!"
       />
     </>
   );

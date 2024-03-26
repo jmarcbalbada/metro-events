@@ -1,14 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
-import { UserContext } from "../hooks/UserContext"; // Import UserContext
-import {
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Snackbar,
-} from "@material-ui/core";
+import { UserContext } from "../hooks/UserContext";
+import { Typography, Snackbar } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
 import axios from "axios";
 import List from "@mui/material/List";
@@ -24,14 +16,18 @@ import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import FastfoodIcon from "@mui/icons-material/Fastfood";
 import Box from "@mui/material/Box";
+import { Link } from "react-router-dom";
+import "../styles/alertmodal.css";
+import AlertDialogModal from "../components/AlertDialogModal";
+import CampaignIcon from '@mui/icons-material/Campaign';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
+import SportsGymnasticsIcon from '@mui/icons-material/SportsGymnastics';
 
 const UpcomingEvents = () => {
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const { user } = useContext(UserContext);
-  console.log(user);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -48,59 +44,14 @@ const UpcomingEvents = () => {
     fetchEvents();
   }, []);
 
-  const handleItemClick = (event) => {
-    setSelectedEvent(event);
-    setDialogOpen(true);
-  };
-
-  const handleConfirm = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:8081/api/event-requests",
-        {
-          event_id: selectedEvent.event_id,
-          user_id: user.user_id,
-        }
-      );
-      console.log(response.data);
-      // Close the dialog
-      setDialogOpen(false);
-    } catch (error) {
-      console.error("Error posting event request:", error);
-      // Handle error
-    } finally {
-      setDialogOpen(false);
-    }
-  };
-
   const handleCancelEvent = async (eventId) => {
     try {
-      const response = await axios.put(
-        `http://localhost:8081/api/cancel-event/${eventId}`
-      );
-      console.log(response.data);
-      // Show snackbar on successful cancellation
+      await axios.put(`http://localhost:8081/api/cancel-event/${eventId}`);
       setSnackbarOpen(true);
     } catch (error) {
       console.error("Error canceling event:", error);
-      // Handle error
     }
   };
-
-  const handleCancel = () => {
-    // Close the dialog without taking any action
-    setDialogOpen(false);
-  };
-
-  // Check if the user's role is suitable for clicking events
-  const isUserRoleClickable = () => {
-    // Define an array of roles that are allowed to click events
-    const clickableRoles = ["user"];
-    // Check if the user's role is included in the clickable roles array
-    return clickableRoles.includes(user.role);
-  };
-
-  const isAdmin = user.role === "administrator";
 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
@@ -126,12 +77,14 @@ const UpcomingEvents = () => {
           {events.map((event) => (
             <ListItem
               key={event.event_id}
-              onClick={
-                isUserRoleClickable() ? () => handleItemClick(event) : null
-              }
+              component={Link} // Add component prop to make the entire ListItem act as a Link
+              to={`/event/${event.event_id}?fromRegister=false`}
               sx={{
                 py: 1,
-                cursor: isUserRoleClickable() ? "pointer" : "default",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                textDecoration: "none", // Add this to remove default text decoration
               }}
             >
               <ListItemAvatar>
@@ -139,53 +92,32 @@ const UpcomingEvents = () => {
               </ListItemAvatar>
               <ListItemText
                 primary={
-                  <>
-                    {event.title}
-                    {isAdmin && (
-                      <Typography
-                        variant="body2"
-                        component="span"
-                        style={{
-                          color: "#f44336",
-                          marginLeft: "5px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => handleCancelEvent(event.event_id)}
-                      >
-                        ✖ Cancel
-                      </Typography>
-                    )}
-                  </>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Typography style={{ paddingRight: "15px" }}>
+                      {event.title}
+                    </Typography>
+                  </div>
                 }
                 secondary={
                   <Typography component="div">
-                    Date: {new Date(event.date).toLocaleDateString()} <b>|</b>{" "}
-                    Location: {event.location}
+                    {new Date(event.date).toLocaleDateString()} <b>|</b>{" "}
+                    {event.location}
                     <br />
-                    Description: {event.description}
+                    {event.description}
                   </Typography>
                 }
               />
+              {/* {user.role === "administrator" && (
+                <AlertDialogModal
+                  // onCancel={() => handleCancelEvent(event.event_id)}
+                  onClick={console.log("clicked")}
+                  sx={{ zIndex: 9999 }}
+                />
+              )} */}
             </ListItem>
           ))}
         </List>
       )}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle>Confirm Participation</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to participate in this event?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancel} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirm} color="primary" autoFocus>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
@@ -217,6 +149,14 @@ const getIcon = (type) => {
       return <MusicNoteIcon />;
     case "Food":
       return <FastfoodIcon />;
+    case "Concert":
+      return <CampaignIcon />;
+    case "Conference":
+      return <PeopleOutlineIcon />;
+    case "Seminar":
+      return <ConnectWithoutContactIcon />;
+    case "Exhibition":
+      return <SportsGymnasticsIcon />;
     default:
       return <EventIcon />;
   }

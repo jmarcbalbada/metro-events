@@ -6,6 +6,7 @@ import Dashboard from "./components/Dashboard";
 import { UserProvider } from "./hooks/UserContext";
 import PostEvent from "./events/PostEvent";
 import EventDetails from "./events/EventDetails";
+import AlertDialogModal from "./components/AlertDialogModal";
 
 function App() {
   return (
